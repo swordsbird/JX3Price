@@ -305,7 +305,7 @@ export default new Vuex.Store({
                     school: state.current.school,
                 })
                 const data = res.data
-                commit('setCurrentValue', { price: data.price, v: data.vector })
+                commit('setCurrentValue', { price: data.price, v: data.v })
                 commit('addHistory', state.current)
             } catch(e) {
                 commit('sendAlert')

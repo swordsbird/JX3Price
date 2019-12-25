@@ -95,7 +95,7 @@ def normalize(v, body):
     items = [x for x in train_items if x['body'] == body]
     r = v
     for x in items:
-        i = x['index']
+        i = int(x['index'])
         std = x['std']
         mean = x['mean']
         if i < len(r):
