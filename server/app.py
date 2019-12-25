@@ -154,3 +154,6 @@ def main2():
 def main3():
     return render_template('index.html')
 
+@app.route('/analysis')
+def main3():
+    return render_template('index.html')

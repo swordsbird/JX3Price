@@ -17,7 +17,7 @@
       </v-navigation-drawer>
       <v-row class="fill-width ma-0 pa-0 mb-12" justify="center">
         <v-col cols="12" md="9" class="pa-0">
-          <info-card :data="current" ref="currentInfo"></info-card>
+          <info-card :data="current" analysis ref="currentInfo"></info-card>
         </v-col>
         <v-col cols="12" md="9" class="pa-0 pt-3">
           <v-card

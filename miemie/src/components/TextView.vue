@@ -22,7 +22,7 @@
                 </v-card>
               </v-dialog>
               <v-col cols="12" sm="10" md="7" class="pa-2" v-if="last">
-                  <info-card editable :data="last"></info-card>
+                  <info-card editable analysis :data="last"></info-card>
               </v-col>
               <v-col cols="12" sm="10" md="7" class="pa-2 pt-5">
                 <v-card class="pa-0 ma-0">

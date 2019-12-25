@@ -43,6 +43,7 @@
     <v-btn v-if="editable"
       color="indigo"
       right
+      small
       top
       absolute
       :disabled="!data.school || !data.body"
@@ -53,9 +54,10 @@
     <v-btn v-if="analysis"
       color="success"
       right
+      small
       bottom
       absolute
-      :disabled="!data.school || !data.body"
+      :disabled="!data.school || !data.body || !data.price"
       @click="onAnalysis()"
       fab>
       <v-icon class="white-font">mdi-chart-bubble</v-icon>
@@ -100,6 +102,7 @@ export default {
     },
     onAnalysis() {
       this.addAnalysisReport(this.data)
+      this.$router.push('/analysis')
     }
   }
 };

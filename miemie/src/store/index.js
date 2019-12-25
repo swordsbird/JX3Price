@@ -54,7 +54,7 @@ export default new Vuex.Store({
             { title: 'text', text: '详情估价', icon: 'mdi-message', route:"/text" },
             { title: 'customize', text: '自选外观', icon: 'mdi-view-list', route:"/customize" },
             { title: 'history', text: '历史信息', icon: 'mdi-history', route:"/history" },
-            { title: 'analysis', text: '翻车货！', icon: 'mdi-money-off', route:"/analysis" },
+            { title: 'analysis', text: '海景房！', icon: 'mdi-money-off', route:"/analysis" },
         ],
     },
     getters: {
@@ -81,7 +81,6 @@ export default new Vuex.Store({
             let totalPrice = userProps.map(d => d.price * d.value).reduce((a, b) => a + b, 0)
             let totalPrice0 = userProps.map(d => d.price0 * d.value).reduce((a, b) => a + b, 0)
             state.report = { summary: { v, school, body, price, time }, userProps, totalPrice, totalPrice0 }
-            console.log(state.report)
             state.showReport = true
         },
         toggleReport(state) {
