@@ -155,5 +155,5 @@ def main3():
     return render_template('index.html')
 
 @app.route('/analysis')
-def main3():
+def main4():
     return render_template('index.html')
