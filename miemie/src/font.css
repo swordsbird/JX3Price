@@ -1,0 +1,68 @@
+@font-face {
+    font-family: WenYueMing;
+    src: url('./assets/WenYue.woff2')
+}
+
+.white-font {
+    color: white!important;
+}
+.black-font {
+    color: black!important;
+}
+.classic-font {
+    font-family: "WenYueMing"!important;
+}
+.text-1 {
+    font-size: 2.125rem;
+    font-weight: 400;
+}
+.text-2 {
+    font-size: 1.825rem;
+    font-weight: 400;
+}
+.text-3 {
+    font-size: 1.525rem;
+    font-weight: 400;
+}
+.text-4 {
+    font-size: 1.225rem;
+    font-weight: 400;
+}
+.text-5 {
+    font-size: 1rem;
+    font-weight: 400;
+}
+.text-20 {
+    font-size: 20px;
+    font-weight: 500;
+}
+.text-18 {
+    font-size: 18px;
+    font-weight: 500;
+}
+.text-16 {
+    font-size: 16px;
+    font-weight: 500;
+}
+.text-12 {
+    font-size: 12px;
+    font-weight: 400;
+}
+.opacity-100 {
+    opacity: 1.0!important;
+}
+.opacity-80 {
+    opacity: 0.8!important;
+}
+.opacity-60 {
+    opacity: 0.6!important;
+}
+.opacity-40 {
+    opacity: 0.4!important;
+}
+.opacity-20 {
+    opacity: 0.2!important;
+}
+.opacity-20 {
+    opacity: 0.1!important;
+}
