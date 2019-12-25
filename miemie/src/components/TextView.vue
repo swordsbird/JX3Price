@@ -57,7 +57,7 @@
       </v-container>
       <v-speed-dial
         v-model="fab"
-        right bottom
+        left bottom
         fixed
         fab
         direction="top"
@@ -102,9 +102,6 @@ export default {
   },
   methods: {
     ...mapActions(['queryPriceByText']),
-    onFeedback() {
-
-    }
   }
 }
 

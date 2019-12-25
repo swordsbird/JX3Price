@@ -43,15 +43,21 @@ html,
 body {
   width: 100%;
 }
-* {
-  font-family: "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB",
-    "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
-}
 .main-card {
   background-image: url("./assets/bg4.jpg"); 
   background-position: center center; 
   background-repeat: no-repeat; 
   background-attachment: fixed;
   background-size: cover;
+  transition: ease;
+  transition-duration: 200ms;
+}
+.report-card {
+  background-image: url("./assets/bg2.jpg"); 
+  background-position: center center; 
+  background-attachment: scroll;
+  background-size: cover;
+  transition: ease;
+  transition-duration: 200ms;
 }
 </style>

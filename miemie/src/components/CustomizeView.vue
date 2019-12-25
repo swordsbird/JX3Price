@@ -142,7 +142,7 @@
 
     <v-speed-dial
       v-model="fab"
-      right bottom
+      left bottom
       fixed
       fab
       direction="top"
@@ -165,12 +165,20 @@
         fab>
         <v-icon class="white-font">mdi-menu-open</v-icon>
       </v-btn>
+      <v-btn
+        color="pink"
+        @click="saveInfoScreen()"
+        fab>
+        <v-icon class="white-font">mdi-content-save</v-icon>
+      </v-btn>
     </v-speed-dial>
   </v-card>
 </template>
 <script>
-import { mapState, mapActions, mapGetters } from "vuex";
-import InfoCard from "./InfoCard.vue";
+import { mapState, mapActions, mapGetters } from "vuex"
+import InfoCard from "./InfoCard.vue"
+import html2canvas from "html2canvas"
+
 
 export default {
   data: () => ({
@@ -207,6 +215,20 @@ export default {
     onSearchPrice() {
       this.$vuetify.goTo(0)
       this.queryCurrentPrice()
+    },
+    async saveInfoScreen() {
+      this.$vuetify.goTo(0)
+      setTimeout(() => {
+        html2canvas(this.$refs.currentInfo.$el, { scale: 2 }).then((canvas) => {
+          const imgurl = canvas.toDataURL()
+          if (!imgurl) return
+          const a = document.createElement('a')
+          a.setAttribute('download', 'report')
+          a.setAttribute('href', imgurl)
+          a.setAttribute('target', '_self')
+          a.click()
+        })
+      }, 100)
     }
   }
 };

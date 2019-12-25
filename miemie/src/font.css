@@ -2,6 +2,11 @@
     font-family: WenYueMing;
     src: url('./assets/WenYue.woff2')
 }
+@font-face {
+    font-family: XinQingNian;
+    src: url('./assets/XinQingNian.otf')
+}
+
 
 .white-font {
     color: white!important;
@@ -11,6 +16,18 @@
 }
 .classic-font {
     font-family: "WenYueMing"!important;
+}
+.text-50 {
+    font-size: 50px;
+    font-weight: 400;
+}
+.text-40 {
+    font-size: 40px;
+    font-weight: 400;
+}
+.text-30 {
+    font-size: 30px;
+    font-weight: 400;
 }
 .text-1 {
     font-size: 2.125rem;

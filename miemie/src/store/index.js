@@ -47,6 +47,7 @@ export default new Vuex.Store({
         history: [],
         waitingForResponse: false,
         showAlert: false,
+        showReport: false,
         useClassicFont: false,
         useFullName: false,
         links: [
@@ -69,16 +70,22 @@ export default new Vuex.Store({
             let userProps = v.map((d, i) => [d, i])
                 .filter(d => d[0] && state.rawitems[d[1]].price0 != 0)
                 .map(d => ({
+                    date: new Date(state.rawitems[d[1]].date),
                     name: state.rawitems[d[1]].name,
+                    fullname: state.rawitems[d[1]].fullname,
                     price: state.rawitems[d[1]].price,
                     price0: state.rawitems[d[1]].price0,
                     index: d[1],
                     value: d[0],
-                }))
+                })).sort((a, b) => a.date < b.date ? -1 : 1)
             let totalPrice = userProps.map(d => d.price * d.value).reduce((a, b) => a + b, 0)
             let totalPrice0 = userProps.map(d => d.price0 * d.value).reduce((a, b) => a + b, 0)
             state.report = { summary: { v, school, body, price, time }, userProps, totalPrice, totalPrice0 }
             console.log(state.report)
+            state.showReport = true
+        },
+        toggleReport(state) {
+            state.showReport = !state.showReport
         },
         addHistory(state, { v, school, body, price, time }) {
             if (!time) time = new Date()
@@ -254,6 +261,9 @@ export default new Vuex.Store({
         },
         addAnalysisReport({ commit }, data){
             commit('addReport', data)
+        },
+        toggleAnalysisReport({ commit }) {
+            commit('toggleReport')
         },
         changeValue({ commit }, index) {
             commit('changeCurrentValue', index)
