@@ -130,7 +130,7 @@ def queryaccount():
             p = float(p[0][0])
         end_time = time.time()
         print('time cost: ', (end_time - start_time) * 1000)
-        return json.dumps({'status': 'success', 'price': p, 'text': words, 'vector': v, 'school': school, 'body': body})
+        return json.dumps({'status': 'success', 'price': p, 'text': words, 'v': v, 'school': school, 'body': body})
     except:
         return json.dumps({'status': 'failed'})
 
