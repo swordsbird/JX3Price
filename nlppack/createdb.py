@@ -73,8 +73,8 @@ for k in ['rhair', 'ghair']:
     for x in category[k]:
         for y in x:
             items.append([y, x[0]])
-        clothes.append([x[0], fullname[x[0]], k])
-        father[x[0]] = fullname[x[0]]
+        clothes.append([x[0], fullname.get(x[0], x[0]), k])
+        father[x[0]] = fullname.get(x[0], x[0])
 
 items.append(['红发全', '_'.join([x[0] for x in category['rhair']])])
 items.append(['红全', '_'.join([x[0] for x in category['rhair']])])
