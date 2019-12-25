@@ -28,9 +28,12 @@ for x in w:
 al = re3.findall(text)
 al = [x[1:-2] for x in al if '(' in x]
 alias = {}
+fullname = {}
 for x in al:
     [p, s] = x.split('(')
     alias[s] = [y for y in p.split('/')]
+    for y in p.split('/'):
+        fullname[y] = s
 
 items = []
 father = {}
@@ -70,8 +73,8 @@ for k in ['rhair', 'ghair']:
     for x in category[k]:
         for y in x:
             items.append([y, x[0]])
-        clothes.append([x[0], x[0], k])
-        father[x[0]] = x[0]
+        clothes.append([x[0], fullname[x[0]], k])
+        father[x[0]] = fullname[x[0]]
 
 items.append(['红发全', '_'.join([x[0] for x in category['rhair']])])
 items.append(['红全', '_'.join([x[0] for x in category['rhair']])])
@@ -418,6 +421,7 @@ for x in data:
     mydb['items'].update_one(
         {'name': x['name']},
         {"$set": {
+            "fullname": x['fullname'],
             "release_date": x.get('release_date', '2020/12/12'),
             "price": x.get('price', 0),
             "price0": x.get('price0', 0)

@@ -9,7 +9,7 @@
         :class="{ 'classic-font': useClassicFont }"
         v-if="data.price"
       >{{Math.floor(data.price * 0.98 / 10) * 10}}~{{Math.floor(data.price * 1.02 / 10) * 10}}元</p>
-      <div class="text--primary">
+      <div class="text--primary" v-if="!simple">
         <template v-for="(x, i) in data.v">
             <span
             v-if="x"
@@ -20,7 +20,14 @@
             </span>
         </template>
       </div>
-      <span
+      <span v-if="data.time"
+        class="subheading"
+        :class="{ 'classic-font': useClassicFont }"
+        style="position: absolute; bottom: 10px; left: 10px;"
+      >
+        {{ `${data.time.getMonth()}月${data.time.getDate()}日 ${data.time.toLocaleTimeString()}` }}
+      </span>
+      <span v-if="!simple"
         class="subheading"
         :class="{ 'classic-font': useClassicFont }"
         style="position: absolute; bottom: 10px; right: 10px;"
@@ -43,6 +50,16 @@
       fab>
       <v-icon class="white-font">mdi-pencil</v-icon>
     </v-btn>
+    <v-btn v-if="analysis"
+      color="success"
+      right
+      bottom
+      absolute
+      :disabled="!data.school || !data.body"
+      @click="onAnalysis()"
+      fab>
+      <v-icon class="white-font">mdi-chart-bubble</v-icon>
+    </v-btn>
   </v-card>
 </template>
 <script>
@@ -61,18 +78,29 @@ export default {
     editable: {
       type: Boolean,
       default: false,
+    },
+    simple: {
+      type: Boolean,
+      default: false,
+    },
+    analysis: {
+      type: Boolean,
+      default: false,
     }
   },
   computed: {
     ...mapState(["rawitems"]),
-    ...mapGetters(["useFullName", "useClassicFont"])
+    ...mapGetters(["useFullName", "useClassicFont",])
   },
   methods: {
-    ...mapActions(["changeAccount"]),
+    ...mapActions(["changeAccount", "addAnalysisReport"]),
     onClick() {
       this.changeAccount(this.data)
       this.$router.push('/customize')
     },
+    onAnalysis() {
+      this.addAnalysisReport(this.data)
+    }
   }
 };
 </script>

@@ -43,6 +43,7 @@ export default new Vuex.Store({
         typedItems: {},
         typeGroups: [],
         current: null,
+        report: null,
         history: [],
         waitingForResponse: false,
         showAlert: false,
@@ -52,6 +53,7 @@ export default new Vuex.Store({
             { title: 'text', text: '详情估价', icon: 'mdi-message', route:"/text" },
             { title: 'customize', text: '自选外观', icon: 'mdi-view-list', route:"/customize" },
             { title: 'history', text: '历史信息', icon: 'mdi-history', route:"/history" },
+            { title: 'analysis', text: '翻车货！', icon: 'mdi-money-off', route:"/analysis" },
         ],
     },
     getters: {
@@ -63,6 +65,21 @@ export default new Vuex.Store({
         useFullName: state => state.useFullName,
     },
     mutations: {
+        addReport(state, { v, school, body, price, time }) {
+            let userProps = v.map((d, i) => [d, i])
+                .filter(d => d[0] && state.rawitems[d[1]].price0 != 0)
+                .map(d => ({
+                    name: state.rawitems[d[1]].name,
+                    price: state.rawitems[d[1]].price,
+                    price0: state.rawitems[d[1]].price0,
+                    index: d[1],
+                    value: d[0],
+                }))
+            let totalPrice = userProps.map(d => d.price * d.value).reduce((a, b) => a + b, 0)
+            let totalPrice0 = userProps.map(d => d.price0 * d.value).reduce((a, b) => a + b, 0)
+            state.report = { summary: { v, school, body, price, time }, userProps, totalPrice, totalPrice0 }
+            console.log(state.report)
+        },
         addHistory(state, { v, school, body, price, time }) {
             if (!time) time = new Date()
             v = v.slice(0)
@@ -98,7 +115,6 @@ export default new Vuex.Store({
             }
         },
         changeCurrentValueTo(state, { index, value }) {
-            console.log(index,value)
             state.current.v[index] = value
         },
         changeGroupValue(state, type) {
@@ -235,6 +251,9 @@ export default new Vuex.Store({
             const items = data.items
             commit('setItems', items)
             commit('addAccount', {})
+        },
+        addAnalysisReport({ commit }, data){
+            commit('addReport', data)
         },
         changeValue({ commit }, index) {
             commit('changeCurrentValue', index)

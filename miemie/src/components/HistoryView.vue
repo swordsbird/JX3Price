@@ -14,7 +14,7 @@
           </v-alert>
         </v-col>
         <v-col cols="12" md="9" class="pa-2" v-for="(x, i) in history" :key="i">
-            <info-card :data="x" :color="colors[i % colors.length]"></info-card>
+            <info-card :data="x"></info-card>
         </v-col>
     </v-row>
   </v-container>
