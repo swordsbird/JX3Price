@@ -35,7 +35,7 @@
                   <span style="color: #EC407A;font-size: 16px;">{{propsDownNum}}</span>件翻车外观，
                   翻车指数<span style="color: #EC407A;font-size: 16px;">{{propsDownRate}}</span>，
                   超越了<span style="color: #EC407A;font-size: 16px;">
-                    {{Number(Math.sqrt((100 - propsDownRate)/100)*100).toFixed(2)}}%</span>的剑三玩家。
+                    {{Number(Math.pow((100 - propsDownRate)/100, 2)*100).toFixed(2)}}%</span>的剑三玩家。
                 </div>
                 <br/>
                 <div><span style="color: #EC407A;font-size: 26px;">惨！</span></div>
@@ -52,15 +52,16 @@
                 </div>
                 <template v-if="x.props2.length">
                   <div :key="`${x.year}props2`">
-                    问君能有几多愁，恰似一筐翻车向东流，
+                    {{ getDowntext(x.year).start }}
                     <template v-for="k in x.props2">
                       {{k.price}}元的
                       <span class="jx3-prop" :key="k.name">{{k.name}}</span>,
                     </template>
-                    欲语泪千行。
+                    {{ getDowntext(x.year).end }}
                   </div>
                 </template>
               </template>
+              <br/>
               <span 
                 class="subheading"
                 style="color: lightgray; position: absolute; bottom: 10px; right: 10px;"
@@ -115,11 +116,37 @@ import html2canvas from "html2canvas"
 export default {
   data: () => ({
     fab: false,
+    downtexts: {
+      '2016年': {
+        start: '问君能有几多愁，恰似一船翻车向东流，',
+        end: '为了它们，你放弃了商城限时不限量的狐金，你心痛了吗？',
+      },
+      '2017年': {
+        start: '这是黑市第一次泡沫破灭，',
+        end: '数数日子，玫瑰庄园的红玫瑰黄玫瑰们，也该盛开了。',
+      },
+      '2018年': {
+        start: '这本不该是翻车的一年，',
+        end: '这一年，黑市买啥啥涨，买啥啥赚，却只有你，又多了几件翻车外观。',
+      },
+      '2019年': {
+        start: '慧眼识珠的你，却买下了',
+        end: '待到来年暮春三月，莺飞草长，这些外观，可还会回来吗？',
+      },
+      '2015年': {
+        start: '',
+        end: '欲语泪先流。',
+      },
+      '其他': {
+        start: '',
+        end: '相顾两无言，惟有泪千行。',
+      },
+    }
   }),
   computed: {
     ...mapState(["history", "showReport", "report"]),
     currentDateString() {
-      return `${new Date().getFullYear()}年${new Date().getMonth() + 1}月${new Date().getDate() + 1}日`
+      return `${new Date().getFullYear()}年${new Date().getMonth() + 1}月${new Date().getDate()}日`
     },
     yearsPassed() {
       return Math.floor((new Date() - this.report.userProps[0].date) / 86400000 / 365)
@@ -134,7 +161,7 @@ export default {
       return this.report.userProps.filter(d => d.price != 0 && d.price >= d.price0 * 1.2).length
     },
     propsDownNum() {
-      return this.report.userProps.filter(d => d.price != 0 && d.price <= d.price0 * 0.8).length
+      return this.report.userProps.filter(d => d.price != 0 && d.price <= d.price0 * 0.9).length
     },
     propsDownRate() {
       return Math.floor(this.propsDownNum*100/(this.propsDownNum + this.propsUpNum))
@@ -143,20 +170,22 @@ export default {
       let ret = []
       let props = this.report.userProps.filter(d => d.date != new Date('2020/12/12'))
       let others = this.report.userProps.filter(d => d.date == new Date('2020/12/12'))
+      let uprate = this.propsUpNum > 20 ? 1.5 : 1.2
+      let downrate = this.propsDownNum > 20 ? 0.8 : 0.9
       let currentYear = new Date().getFullYear()
       for (let i = props[0].date.getFullYear(); i < currentYear; ++i) {
         let t = props.filter(d => d.date.getFullYear() == i)
         ret.push({
           year: `${i}年`,
-          props: t.filter(d => d.price != 0 && d.price >= d.price0 * 1.5),
-          props2: t.filter(d => d.price != 0 && d.price < d.price0 * 0.8),
+          props: t.filter(d => d.price != 0 && d.price >= d.price0 * uprate),
+          props2: t.filter(d => d.price != 0 && d.price < d.price0 * downrate),
         })
       }
       if (others.length) {
         ret.push({
           year: '其他',
-          props: others.filter(d => d.price != 0 && d.price >= d.price0 * 1.5),
-          props2: others.filter(d => d.price != 0 && d.price <= d.price0 * 0.8),
+          props: others.filter(d => d.price != 0 && d.price >= d.price0 * uprate),
+          props2: others.filter(d => d.price != 0 && d.price <= d.price0 * downrate),
         })
       }
       return ret
@@ -180,6 +209,12 @@ export default {
           a.click()
         })
       }, 100)
+    },
+    getDowntext(year) {
+      if (!this.downtexts[year]) {
+        return this.downtexts['其他']
+      }
+      return this.downtexts[year]
     }
   }
 }
