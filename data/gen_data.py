@@ -7,6 +7,7 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 from nlppack.word_cut import parse
+from data.item_feature import blacklist
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["paopao"]
@@ -41,9 +42,7 @@ def find_index(x):
         x = x + '发'
     return item_index.get(x, -1)
 
-
 accounts = [x for x in accounts]
-
 
 def achievePointF(x):
     if x > 0 and x < 10:
@@ -52,8 +51,11 @@ def achievePointF(x):
         x = 30000
     return x
 
-
 def extract_vector(s, text, dirty=False):
+    if dirty:
+        for x in blacklist:
+            if x in text:
+                return None, None, None, None
     x = []
     enable_cl5 = True
     last = ''
@@ -131,7 +133,7 @@ def extract_vector(s, text, dirty=False):
                         break
     #print(body, school, price, x)
     if dirty:
-        if body == None or school == None or price == -1 or '月租' in text or '已租' in text or price < 200 or s[0] == '出租':
+        if body == None or school == None or price == -1 or price < 200 or s[0] == '出租':
             return None, None, None, None
     # remove price info
     if pindex != -1:

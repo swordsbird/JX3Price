@@ -5,7 +5,7 @@ import random
 import sys
 sys.path.append('.')
 sys.path.append('..')
-from data.item_feature import item_weight, reserved_items, fix_pairs, addition_pairs, random_change_weight, body_penalty
+from data.item_feature import fix_pairs, random_change_weight, type_penalty, body_penalty
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["paopao"]
@@ -14,23 +14,43 @@ merge_category = ['cl7', 'cln', 'other', 'cloak']
 
 items = mydb['items'].find({ 'index': { '$gte': 0}})
 items = [x for x in items]
+reserved_items = [x['name'] for x in items if x['price'] > x['price0']]
+reserved_set = set(reserved_items)
+expand_items = [x['index'] for x in items if x['price'] <= x['price0'] * 1.1 and x['abbrtype'] in type_penalty]
+
 category = dict([[x['name'], x['type']] for x in items])
 father = dict([[x['name'], x.get('father', '')] for x in items])
 items.sort(key = lambda x: int(x['index']))
 new_items = []
 item_index = {}
 
+base_prop_price = 200
+base_price = 1000
+
 for x in items:
     n = x['name']
     if n in category and n in father and category[n] in merge_category:
         if father[n] not in item_index:
             item_index[father[n]] = len(new_items)
-            new_items.append({ 'name': father[n], 'index': len(new_items), 'include': []})
-        new_items[item_index[father[n]]]['include'].append(x['index'])
+            new_items.append({ 'name': father[n], 'index': len(new_items), 'include': [], 'max': 0, 'weight': 1})
+        index = item_index[father[n]]
+        new_items[index]['include'].append(x['index'])
+        new_items[index]['max'] += x.get('stat', {}).get('max', 0)
+        if x.get('price', 0) > 0 and x.get('price0', 0) > 0:
+            new_items[index]['weight'] += x['price']
     else:
-        new_items.append({ 'name': n, 'index': len(new_items), 'include': [x['index']]})
+        new_items.append({
+            'name': n, 'index': len(new_items),
+            'include': [x['index']],
+            'max': x.get('stat', {}).get('max', 0),
+            'weight': 1
+        })
+        if x.get('price', 0) > 0 and x.get('price0', 0) > 0:
+            new_items[-1]['weight'] = x['price']
 
-reserved_set = set(reserved_items)
+for x in new_items:
+    x['weight'] = (x['weight'] / base_prop_price) ** 0.4
+
 origin_index = dict([[x['name'], x['index']] for x in items])
 typed_index = {}
 for x in items:
@@ -52,10 +72,6 @@ for p in fix_pairs:
         y[i][1] /= total
     new_fix_pairs.append((x, z, y))
 fix_pairs = new_fix_pairs
-
-addition_set = set([x[0] for x in addition_pairs])
-for p in addition_pairs:
-    new_items.append({ 'name': p[0], 'type': 'syn', 'index': len(new_items), 'include': [origin_index[x] for x in p[1]]})
 
 def check_dims(v):
     r = v[:]
@@ -86,113 +102,108 @@ def expand_dims(v, dirty = False):
         for i in x['include']:
             t += v[i]
         r.append(t)
-    for i in range(len(r) - 1, 0, -1):
-        if new_items[i]['name'] not in addition_set: break
-        r[i] = 1 if r[i] == 0 else 0
     return r
 
 def normalize(v, body):
-    items = [x for x in train_items if x['body'] == body]
+    keys = [x for x in train_items if x['body'] == body]
     r = v
-    for x in items:
+    for x in keys:
         i = int(x['index'])
-        std = x['std']
-        mean = x['mean']
         if i < len(r):
-            if mean != 0:
-                if mean < 0.05: mean = 0.05
-                r[i] = (float(r[i]) - std) / mean * x['weight']
-            else:
+            if x['max'] == 0:
                 r[i] = 0
+            else:
+                r[i] = r[i] / x['max'] * x['weight']
     return r
 
 def get_price(p, body):
     v = [x for x in train_items if x['body'] == body and x['name'] == 'price']
     x = v[0]
-    std = x['std']
-    mean = x['mean']
-    return p * mean + std
+    return p * x['max']
 
 if __name__ == '__main__':
     bodys = items[2:6]
-    bodys = [x['name'] for x in bodys][1:]
+    bodys = [x['name'] for x in bodys]
     for body in bodys:
         mydb['train_datas'].delete_many({ 'body': body })
         mydb['train_items'].delete_many({ 'body': body })
     for body in bodys:
         train_items = []
         for k in new_items:
-            train_items.append({ 'name': k['name'], 'weight': item_weight[body].get(k['name'], 1), 'index': len(train_items), 'body': body })
-        items = mydb['infos'].find({ 'body': body, 'price' : { '$gte' : 1800, '$lte': 150000 }, 'timestamp' : { '$gt' : 1575176104501 }})
-        _items = [
+            train_items.append({ 'name': k['name'], 'weight': k['weight'], 'index': len(train_items), 'body': body, 'max': k['max']})
+        data = mydb['infos'].find({ 'body': body, 'price' : { '$gte' : 1800, '$lte': 150000 }, 'timestamp' : { '$gt' : 1575176104501 }})
+        _data = [
             { 'price' : x['price'], 'name': x['name'], 'school' : x['school'], 'v': x['v'], 'url': x['url'], 'body': x['body'] }
-            for x in items
+            for x in data
         ]
 
-        items_by_school = {}
-        for x in _items:
-            if x['school'] not in items_by_school:
-                items_by_school[x['school']] = []
-            items_by_school[x['school']].append(x)
-        maxn = max([len(items_by_school[s]) for s in items_by_school])
-        maxn = int(maxn * 2)
+        data_by_school = {}
+        for x in _data:
+            if x['school'] not in data_by_school:
+                data_by_school[x['school']] = []
+            data_by_school[x['school']].append(x)
+        maxn = max([len(data_by_school[s]) for s in data_by_school])
+        maxn = int(maxn)
 
-        items = []
+        data = []
         random_change_options = [x for x in random_change_weight]
-        for school in items_by_school:
-            n = len(items_by_school[school])
-            m = int(n * min(max(maxn / n, 2), 6))
+        for school in data_by_school:
+            n = len(data_by_school[school])
+            m = int(n * min(max(maxn / n, 2), 4))
             if school == '凌雪':
                 m = 0
             for k in range(m):
                 selected = random.randint(0, n - 1)
-                x = items_by_school[school][selected]
+                x = data_by_school[school][selected]
                 price = x['price']
                 body = x['body']
                 pd = 0
                 dlimit = min(price * 0.2, 2000) * random.uniform(0.5, 1)
                 v = x['v'][:]
-                while pd < dlimit:
-                    i = random.randint(0, len(random_change_options) - 1)
-                    i = random_change_options[i]
-                    j = origin_index[i]
-                    v[j] += 1
-                    delta = random.uniform(0.6, 1.4) * random_change_weight[i] * body_penalty[body]
+                if v[origin_index['九天逍遥散']] != 0:
+                    continue
+                expand_v = [x for x in expand_items if v[x] == 0]
+                while pd < dlimit and len(expand_v) > 0:
+                    rand = random.randint(0, len(expand_v) - 1)
+                    i = expand_v[rand]
+                    v[i] += 1
+                    expand_v = expand_v[:rand] + expand_v[rand:]
+                    typ = items[i]['abbrtype']
+                    delta = random.uniform(0.8, 1.2) * type_penalty[typ] * body_penalty[body] * items[i]['price']
                     price += delta
                     pd += delta
                 if price < 3000:
                     cw = random.randint(0, 10)
                 else:
-                    cw = random.randint(0, 18)
-                if cw <= 1 and school != '凌雪' and v[origin_index['九天逍遥散']] == 0:
+                    cw = random.randint(0, 20)
+                if cw <= 1:
                     if cw == 0 and v[origin_index['100级橙武']] == 0:
                         v[origin_index['100级橙武']] = 1
-                        delta = random.uniform(0.9, 1.1) * math.sqrt(body_penalty[body]) * 7500
+                        delta = random.uniform(0.9, 1.1) * math.sqrt(body_penalty[body]) * 7000
                         price += delta
                     elif cw == 1 and v[origin_index['100级玄晶']] == 0:
                         v[origin_index['100级玄晶']] = 1
-                        delta = random.uniform(0.9, 1.1) * math.sqrt(body_penalty[body]) * 5000
+                        delta = random.uniform(0.9, 1.1) * math.sqrt(body_penalty[body]) * 4000
                         price += delta
+                data.append({'price' : price, 'name': x['name'], 'school' : school, 'v': v, 'url': x['url'], 'body': body})
 
-                items.append({'price' : price, 'name': x['name'], 'school' : school, 'v': v, 'url': x['url'], 'body': body})
-
-        for x in _items:
-            items.append(x)
+        for x in _data:
+            data.append(x)
 
         print(body)
-        print(len(items))
-        print(sum([x['price'] for x in items]))
+        print(len(data))
+        print(sum([x['price'] for x in data]))
 
-        for i in range(len(items)):
-            x = items[i]
+        for i in range(len(data)):
+            x = data[i]
             x['v'] = expand_dims(x['v'], dirty = True) + [x['price']]
 
-        train_items.append({ 'name': 'price', 'index': len(train_items), 'weight': 1, 'body': x['body'], 'type': 'price' })
+        train_items.append({ 'name': 'price', 'index': len(train_items), 'weight': 1, 'body': x['body'], 'type': 'price', 'max': base_price })
         keyword_n = len(train_items)
 
         for i in range(0, keyword_n):
-            v = np.array([x['v'][i] for x in items])
-            vp = np.array([x['price'] for x in items if x['v'][i] > 0])
+            v = np.array([x['v'][i] for x in data])
+            vp = np.array([x['price'] for x in data if x['v'][i] > 0])
             std = np.std(v)
             mean = np.mean(v)
             if len(vp) > 0:
@@ -209,11 +220,11 @@ if __name__ == '__main__':
             train_items[i]['price_mean'] = mean_p
             train_items[i]['price_min'] = min_p
 
-        for x in items:
+        for x in data:
             x['v'] = normalize(x['v'], body)
 
         mydb['train_items'].insert_many(train_items)
-        mydb['train_datas'].insert_many(items)
+        mydb['train_datas'].insert_many(data)
 else:
     train_items = mydb['train_items'].find()
     train_items = [x for x in train_items]

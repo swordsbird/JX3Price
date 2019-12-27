@@ -55,7 +55,8 @@ cl = [x for x in v if '·' in x]
 excl7 = ['幽舞华芳', '明镜高悬', '雪月交晖', '任侠河山']
 excln = ['金罗姆', '望月']
 exbox = ['斩夜无常', '虞渊引梦', '霜岱应元', '日月无心', '云中雪霁', '碧海云仙', '浮屠明音', '陌上窈窕',
-         '剑歌惊月', '染墨千秋', '碧翎叠云', '北望天狼', '天穹掠影', '云锦梦华', '九阙天影', '盘龙凤舞']
+         '剑歌惊月', '染墨千秋', '碧翎叠云', '北望天狼', '天穹掠影', '云锦梦华', '九阙天影', '盘龙凤舞',
+         '鹤影天青']
 skip_set = set(['沧海间', '贺华岁', '飒西风', '夜隐仙'])
 cl5_set = set([x[:x.index('·')] for x in cl[:32]])
 cl_cnt = {}
@@ -244,10 +245,10 @@ for x in co:
     if '·' not in x:
         items.append([re.sub('·', '', x), name])
     clothes.append([name, x, 'cloak'])
-    if fa in reserve_cloaks:
-        father[name] = fa
-    else:
-        father[name] = '普通披风'
+    #if fa in reserve_cloaks:
+    father[name] = fa
+    #else:
+    #    father[name] = '普通披风'
 
 for x in pat:
     fa = x
@@ -286,10 +287,10 @@ for x in category['other']:
     for y in x:
         items.append([y, x[0]])
     clothes.append([x[0], x[0], 'other'])
-    if x[0] in reserve_items:
-        father[x[0]] = x[0]
-    else:
-        father[x[0]] = '普通挂件'
+    #if x[0] in reserve_items:
+    father[x[0]] = x[0]
+    #else:
+    #    father[x[0]] = '普通挂件'
 
 for x in category['reserve']:
     for y in x:
@@ -346,44 +347,29 @@ type_order = ['stype', 'body', 'school', 'rhair', 'ghair', 'cl5', 'cl6', 'cl7', 
 type_index = dict([[type_order[i], i] for i in range(len(type_order))])
 data = []
 
-f = open(nlppath('props.csv'), 'r')
+f = open(nlppath('newprops.csv'), 'r')
 propdate = {}
 propprice = {}
+propprice0 = {}
 for y in f:
     x = re.sub('\s', '', y).split(',')
     propdate[x[0]] = x[1]
     propprice[x[0]] = int(x[2])
-
-default_price0_by_type = {
-    'cl5': 200,
-    'cl6': 280,
-    'cl7': 280,
-    'cln': 200,
-    'box': 888,
-    'boxn': 520,
-    'rhair': 380,
-    'ghair': 280,
-    'cloak': 688,
-    'pat': 388
-}
-default_price0_by_name = {
-    '下架': 200,
-    '拓印': 240,
-    '白发': 200,
-    '黑发': 100
-}
+    propprice0[x[0]] = int(x[3])
 
 for x in clothes:
     if x[1] in propdate:
         release_date = propdate[x[1]]
         price = propprice[x[1]]
+        price0 = propprice0[x[1]]
     elif x[1] + '礼盒' in propdate:
         release_date = propdate[x[1] + '礼盒']
         price = propprice[x[1] + '礼盒']
+        price0 = propprice0[x[1] + '礼盒']
     else:
         release_date = '2020/12/12'
         price = 0
-    price0 = default_price0_by_type.get(x[2], 0)
+        price0 = 0
     data.append({
         'name': x[0],
         'fullname': x[1],
@@ -395,18 +381,31 @@ for x in clothes:
     })
 
 for x in category['cnt']:
-    price = 0
-    price0 = default_price0_by_name.get(x[0], 0)
+    if x[2] in propdate:
+        price = propprice[x[2]]
+        price0 = propprice0[x[2]]
+    else:
+        price = 0
+        price0 = 0
+    release_date = '2020/12/12'
     data.append({
         'name': x[2],
         'type': 'cnt',
         'price': price,
         'price0': price0,
+        'release_date': release_date,
         'fullname': x[2],
         'limit': int(x[1]),
         'tag': x[0]
     })
-
+'''
+f = open(nlppath('newprops.csv'), 'w')
+s = ''
+for x in propdate:
+    s += x + ',' + propdate[x] + ',' + str(propprice[x]) + ',' + str(propprice0.get(x,0)) + '\n'
+f.write(s)
+f.close()
+'''
 data.sort(key=lambda x: type_index.get(x['type'], 100))
 for i in range(len(data)):
     data[i]['abbrtype']=abbr.get(data[i]['type'], '')
@@ -415,8 +414,9 @@ for i in range(len(data)):
     else:
         data[i]['index']=i
 
-# mydb['items'].delete_many({})
-# mydb['items'].insert_many(data)
+mydb['items'].delete_many({})
+mydb['items'].insert_many(data)
+'''
 for x in data:
     mydb['items'].update_one(
         {'name': x['name']},
@@ -428,3 +428,4 @@ for x in data:
             }
         }
     )
+'''
