@@ -12,7 +12,7 @@ import sys
 sys.path.append("..")
 from data.gen_data import extract, set_body, set_school, check_vector
 from data.gen_training_data import expand_dims, get_price, normalize
-from data.item_feature import type_penalty, school_penalty
+from data.item_feature import type_penalty, school_penalty, body_penalty
 
 model_path = '../model/'
 model = {}
