@@ -124,7 +124,7 @@ def queryaccount():
 
     p = -1
     if body in models:
-        p0 = (np.array(v) * item_price) * body_penalty.get(body, 1) * school_penalty.get(school, 1)
+        p0 = sum(np.array(v) * item_price) * body_penalty.get(body, 1) * school_penalty.get(school, 1)
         print(p0)
         if p0 < 2000:
             p = p0
