@@ -126,7 +126,7 @@ def queryaccount():
     if body in models:
         p0 = sum(np.array(v) * item_price) * params.get(body, 1) * params.get(school, 1)
         #print(p0)
-        if p0 < 2000:
+        if p0 < 1500:
             p = p0
         else:
             tv = expand_dims(v)
