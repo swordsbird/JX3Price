@@ -100,46 +100,45 @@ def querydb():
 @app.route('/api/queryaccount/', methods=['POST'])
 def queryaccount():
     start_time = time.time()
-    try:
-        args = json.loads(request.get_data(as_text=True))
-        text = args.get('text', '')
-        v = args.get('v', [])
-        if text != '':
-            words, (price, school, body, v) = extract(text)
-        else:
-            words = []
-            v = check_vector(v)
+    args = json.loads(request.get_data(as_text=True))
+    text = args.get('text', '')
+    v = args.get('v', [])
+    if text != '':
+        words, (price, school, body, v) = extract(text)
+    else:
+        words = []
+        v = check_vector(v)
 
-        sc = args.get('school', '')
-        if sc != '':
-            school = sc
-            set_school(v, school)
+    sc = args.get('school', '')
+    if sc != '':
+        school = sc
+        set_school(v, school)
 
-        bd = args.get('body', '')
-        if bd != '':
-            body = bd
-            set_body(v, body)
-        
-        if body == None or school == None or body == '' or school == '':
-            return json.dumps({'status': 'failed'})
-
-        p = -1
-        if body in models:
-            p0 = np.array(v) * item_price * body_penalty.get(body, 1) * school_penalty.get(school, 1)
-            if p0 < 2000:
-                p = p0
-            else:
-                tv = expand_dims(v)
-                tv = normalize(tv, body)
-                model = models[body]
-                p = model.predict(np.array([tv]))
-                p = get_price(p, body)
-                p = float(p[0][0])
-        end_time = time.time()
-        print('time cost: ', (end_time - start_time) * 1000)
-        return json.dumps({'status': 'success', 'price': p, 'text': words, 'v': v, 'school': school, 'body': body})
-    except:
+    bd = args.get('body', '')
+    if bd != '':
+        body = bd
+        set_body(v, body)
+    
+    if body == None or school == None or body == '' or school == '':
         return json.dumps({'status': 'failed'})
+
+    p = -1
+    if body in models:
+        p0 = np.array(v) * item_price * body_penalty.get(body, 1) * school_penalty.get(school, 1)
+        if p0 < 2000:
+            p = p0
+        else:
+            tv = expand_dims(v)
+            tv = normalize(tv, body)
+            model = models[body]
+            p = model.predict(np.array([tv]))
+            p = get_price(p, body)
+            p = float(p[0][0])
+    end_time = time.time()
+    print('time cost: ', (end_time - start_time) * 1000)
+    return json.dumps({'status': 'success', 'price': p, 'text': words, 'v': v, 'school': school, 'body': body})
+    #except:
+    #    return json.dumps({'status': 'failed'})
 
 @app.route('/api/items/', methods=['GET'])
 def get_items():
