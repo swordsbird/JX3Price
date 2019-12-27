@@ -12,6 +12,7 @@ import sys
 sys.path.append("..")
 from data.gen_data import extract, set_body, set_school, check_vector
 from data.gen_training_data import expand_dims, get_price, normalize
+from data.item_feature import type_penalty, school_penalty
 
 model_path = '../model/'
 model = {}
@@ -26,12 +27,13 @@ items = [{
     'type': x['abbrtype'],
     'fullname': x.get('fullname', ''),
     'date': x.get('release_date', ''),
-    'price': x.get('price', ''),
-    'price0': x.get('price0', ''),
+    'price': x.get('price', 0),
+    'price0': x.get('price0', 0),
     'index': int(x['index']),
     'mean': float(x.get('stat', {}).get('mean', 0))
 } for x in items]
 items.sort(key=lambda x: int(x['index']))
+item_price = np.array([x['price'] * type_penalty.get(x['type'], 0.7) for x in items])
 keyword_map = dict([x['name'], x['index']] for x in items)
 
 app = Flask(__name__, static_folder='./dist/',
@@ -59,11 +61,9 @@ class Model:
 
 
 models = {}
-models['成女'] = Model('成女')
-models['萝莉'] = Model('萝莉')
-models['成男'] = Model('成男')
-models['正太'] = Model('正太')
-
+bodys = ['成女', '萝莉', '成男', '正太']
+for i in bodys:
+    models[i] = Model(i)
 
 @app.route('/api/querydb/', methods=['POST'])
 def querydb():
@@ -119,15 +119,22 @@ def queryaccount():
         if bd != '':
             body = bd
             set_body(v, body)
+        
+        if body == None or school == None or body == '' or school == '':
+            return json.dumps({'status': 'failed'})
 
         p = -1
         if body in models:
-            tv = expand_dims(v)
-            tv = normalize(tv, body)
-            model = models[body]
-            p = model.predict(np.array([tv]))
-            p = get_price(p, body)
-            p = float(p[0][0])
+            p0 = np.array(tv) * item_price * body_penalty.get(body, 1) * school_penalty.get(school, 1)
+            if p0 < 2000:
+                p = p0
+            else:
+                tv = expand_dims(v)
+                tv = normalize(tv, body)
+                model = models[body]
+                p = model.predict(np.array([tv]))
+                p = get_price(p, body)
+                p = float(p[0][0])
         end_time = time.time()
         print('time cost: ', (end_time - start_time) * 1000)
         return json.dumps({'status': 'success', 'price': p, 'text': words, 'v': v, 'school': school, 'body': body})
