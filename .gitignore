@@ -102,7 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
-.DS_Store
+*.DS_Store
 *.h5
 *.pyc
 ./*/__pycache__/

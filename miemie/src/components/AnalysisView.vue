@@ -130,7 +130,7 @@ export default {
         end: '这一年，黑市买啥啥涨，买啥啥赚，却只有你，又多了几件翻车外观。',
       },
       '2019年': {
-        start: '慧眼识珠的你，却买下了',
+        start: '审美在线的你，却买下了',
         end: '待到来年暮春三月，莺飞草长，这些外观，可还会回来吗？',
       },
       '2015年': {
@@ -173,7 +173,7 @@ export default {
       let uprate = this.propsUpNum > 20 ? 1.5 : 1.2
       let downrate = this.propsDownNum > 20 ? 0.8 : 0.9
       let currentYear = new Date().getFullYear()
-      for (let i = props[0].date.getFullYear(); i < currentYear; ++i) {
+      for (let i = props[0].date.getFullYear(); i <= currentYear; ++i) {
         let t = props.filter(d => d.date.getFullYear() == i)
         ret.push({
           year: `${i}年`,

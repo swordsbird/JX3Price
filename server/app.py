@@ -12,7 +12,7 @@ import sys
 sys.path.append("..")
 from data.gen_data import extract, set_body, set_school, check_vector
 from data.gen_training_data import expand_dims, get_price, normalize
-from data.item_feature import type_penalty, school_penalty, body_penalty
+from data.item_feature import params
 
 model_path = '../model/'
 model = {}
@@ -33,7 +33,7 @@ items = [{
     'mean': float(x.get('stat', {}).get('mean', 0))
 } for x in items]
 items.sort(key=lambda x: int(x['index']))
-item_price = np.array([x['price'] * type_penalty.get(x['type'], 0.7) for x in items])
+item_price = np.array([((x['price'] / params['base']) ** params['exp']) * params['base'] * params.get(x['type'], 0.7) for x in items])
 keyword_map = dict([x['name'], x['index']] for x in items)
 
 app = Flask(__name__, static_folder='./dist/',
@@ -124,7 +124,7 @@ def queryaccount():
 
     p = -1
     if body in models:
-        p0 = sum(np.array(v) * item_price) * body_penalty.get(body, 1) * school_penalty.get(school, 1)
+        p0 = sum(np.array(v) * item_price) * params.get(body, 1) * params.get(school, 1)
         #print(p0)
         if p0 < 2000:
             p = p0
