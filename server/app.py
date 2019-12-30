@@ -33,7 +33,6 @@ items = [{
     'mean': float(x.get('stat', {}).get('mean', 0))
 } for x in items]
 items.sort(key=lambda x: int(x['index']))
-item_price = np.array([((x['price'] / params['base']) ** params['exp']) * params['base'] * params.get(x['type'], 0.7) for x in items])
 keyword_map = dict([x['name'], x['index']] for x in items)
 
 app = Flask(__name__, static_folder='./dist/',
@@ -64,6 +63,10 @@ models = {}
 bodys = ['成女', '萝莉', '成男', '正太']
 for i in bodys:
     models[i] = Model(i)
+
+item_price = {}
+for b in bodys:
+    item_price[b] = np.array([((params.get(x['name'] + b, x['price']) / params['base']) ** params.get(x['type'], 0.5)) * params['base'] for x in items])
 
 @app.route('/api/querydb/', methods=['POST'])
 def querydb():
@@ -124,9 +127,9 @@ def queryaccount():
 
     p = -1
     if body in models:
-        p0 = sum(np.array(v) * item_price) * params.get(body, 1) * params.get(school, 1)
+        p0 = v.dot(item_price[body]) * params.get(body, 1) * params.get(school, 1)
         #print(p0)
-        if p0 < 1500:
+        if p0 < 2000:
             p = p0
         else:
             tv = expand_dims(v)
