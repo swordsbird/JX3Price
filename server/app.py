@@ -127,7 +127,7 @@ def queryaccount():
 
     p = -1
     if body in models:
-        p0 = v.dot(item_price[body]) * params.get(body, 1) * params.get(school, 1)
+        p0 = np.array(v).dot(item_price[body]) * params.get(body, 1) * params.get(school, 1)
         #print(p0)
         if p0 < 2000:
             p = p0
