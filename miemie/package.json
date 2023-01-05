@@ -19,7 +19,7 @@
   "devDependencies": {
     "@mdi/font": "^4.7.95",
     "@vue/cli-plugin-babel": "^4.1.0",
-    "@vue/cli-service": "^4.1.0",
+    "@vue/cli-service": "^5.0.8",
     "material-design-icons-iconfont": "^5.0.1",
     "sass": "^1.23.7",
     "sass-loader": "^8.0.0",
